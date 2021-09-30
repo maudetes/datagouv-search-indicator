@@ -33,7 +33,10 @@ from pathlib import Path
 from progress.bar import ChargingBar
 from urllib.parse import parse_qs, urlencode
 
+from scripts.matomo_query_datasets import MatomoQueryDatasetBuilder
+
 DEFAULT_DOMAIN = 'www.data.gouv.fr'
+DEFAULT_STATS_DOMAIN = 'stats.data.gouv.fr'
 PAGE_SIZE = 20
 TIMEOUT = 10
 CONCURRENCY = 20
@@ -508,3 +511,17 @@ def run(ctx, domain=DEFAULT_DOMAIN, max_pages=3, scheme='https', timeout=TIMEOUT
     loop.close()
     success('Benchmark run {0} queries on {1}', len(results), domain)
     toc(ctx, domain)
+
+
+@task
+def dataset(ctx, stats_domain=DEFAULT_STATS_DOMAIN, dataset_domain=DEFAULT_DOMAIN, site_id=109, 
+            scheme='https', dataset_path='datasets_stats.csv'):
+    '''Create a test dataset with queries and their expected datasets based on matomo search logs'''
+    header('Running dataset builder on {0}', stats_domain)
+    info('This operation may take a long time')
+    dataset_builder = MatomoQueryDatasetBuilder(stats_domain, dataset_domain, site_id, scheme, dataset_path)
+    try:
+        count_queries = dataset_builder.create_query_dataset()
+        success(f'Created {dataset_path} with {count_queries} queries based on {stats_domain}')
+    except Exception as e:
+        error("Failed to build query dataset from matomo stats. Error: " + str(e))
