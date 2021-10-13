@@ -229,7 +229,7 @@ class Runner:
         self.max_pages = max_pages
         self.now = datetime.now()
         self.concurrency = concurrency
-        self.runners = [DatasetRunner(self), OrgRunner(self)]
+        self.runners = [DatasetRunner(self)]
 
     @property
     def timestamp(self):
@@ -355,6 +355,13 @@ class ModelRunnner:
                                    items=items,
                                    total=result['total'])
             page += 1
+
+        # Not found before self.runner.max_pages
+        return QueryResult(found=False,
+                           page=page,
+                           page_size=result['page_size'],
+                           items=items,
+                           total=result['total'])
 
     async def get(self, id):
         raise NotImplementedError()
